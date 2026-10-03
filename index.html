@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Game Score Calculator (14 Teams)</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #1e293b;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            margin-bottom: 20px;
+        }
+        .rules-box {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .team-card {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #e2e8f0;
+        }
+        .team-header {
+            font-weight: bold;
+            font-size: 16px;
+            color: #334155;
+            margin-bottom: 10px;
+        }
+        .input-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .input-group label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        @media (max-width: 768px) {
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        input {
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 15px;
+        }
+        .btn-success:hover {
+            opacity: 0.9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #e2e8f0;
+            color: #334155;
+        }
+        tr.winner {
+            background-color: #dcfce7;
+            font-weight: bold;
+        }
+        .badge {
+            background-color: var(--success);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Satellite Game Score Calculator (14 Teams)</h1>
+    
+    <div class="rules-box">
+        <strong>Rules & Scoring Formula:</strong><br>
+        • Formula: <code>(Remaining Budget [Max 10] × 10) + (Satellite Integrity × 50) + (Remaining Fuel × 30)</code><br>
+        • The team with the highest total score wins. (In case of a tie, the team with higher satellite integrity wins).
+    </div>
+
+    <!-- 14 Teams Input Section -->
+    <div class="card">
+        <h2>Enter Data for 14 Teams</h2>
+        <div id="teamsContainer">
+            <!-- Form rows generated automatically -->
+        </div>
+        <button type="button" class="btn-success" onclick="calculateScores()">🏆 Calculate Scores & Ranking</button>
+    </div>
+
+    <!-- Results Section -->
+    <div class="card" id="resultCard" style="display: none;">
+        <h2>Leaderboard & Results</h2>
+        <div id="winnerAnnouncement" style="text-align: center; font-size: 18px; margin-bottom: 15px; font-weight: bold; color: var(--success);"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Team Name</th>
+                    <th>Budget (Max 10 used)</th>
+                    <th>Satellite Integrity</th>
+                    <th>Remaining Fuel</th>
+                    <th>Total Score</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="resultTableBody">
+                <!-- Results will appear here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Generate form inputs for 14 teams on load
+    window.onload = function() {
+        const container = document.getElementById("teamsContainer");
+        for (let i = 1; i <= 14; i++) {
+            const teamCard = document.createElement("div");
+            teamCard.className = "team-card";
+            teamCard.innerHTML = `
+                <div class="team-header">Team ${i}</div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>Team Name</label>
+                        <input type="text" placeholder="Enter team name" class="team-name" value="Team ${i}">
+                    </div>
+                    <div class="input-group">
+                        <label>Remaining Budget</label>
+                        <input type="number" placeholder="Budget" class="team-budget" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Satellite Integrity</label>
+                        <input type="number" placeholder="Integrity" class="team-satellite" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Remaining Fuel</label>
+                        <input type="number" placeholder="Fuel" class="team-fuel" value="0" min="0">
+                    </div>
+                </div>
+            `;
+            container.appendChild(teamCard);
+        }
+    };
+
+    function calculateScores() {
+        const teamCards = document.querySelectorAll(".team-card");
+        let teams = [];
+
+        teamCards.forEach((card, index) => {
+            let nameInput = card.querySelector(".team-name").value.trim();
+            let name = nameInput !== "" ? nameInput : `Team ${index + 1}`;
+            let rawBudget = parseFloat(card.querySelector(".team-budget").value) || 0;
+            let satellite = parseFloat(card.querySelector(".team-satellite").value) || 0;
+            let fuel = parseFloat(card.querySelector(".team-fuel").value) || 0;
+
+            // Rule: Remaining budget capped at a maximum of 10
+            let effectiveBudget = Math.min(rawBudget, 10);
+
+            // Calculation formula
+            let score = (effectiveBudget * 10) + (satellite * 50) + (fuel * 30);
+
+            teams.push({
+                name: name,
+                rawBudget: rawBudget,
+                effectiveBudget: effectiveBudget,
+                satellite: satellite,
+                fuel: fuel,
+                score: score
+            });
+        });
+
+        // Sort ranking: 1. Highest score, 2. Highest satellite integrity if tied
+        teams.sort((a, b) => {
+            if (b.score !== a.score) {
+                return b.score - a.score;
+            }
+            return b.satellite - a.satellite;
+        });
+
+        // Display results
+        const resultCard = document.getElementById("resultCard");
+        const tbody = document.getElementById("resultTableBody");
+        const winnerAnnouncement = document.getElementById("winnerAnnouncement");
+        
+        tbody.innerHTML = "";
+        resultCard.style.display = "block";
+
+        winnerAnnouncement.innerHTML = `🎉 Congratulations to the Winner: "${teams[0].name}"!`;
+
+        teams.forEach((team, index) => {
+            let tr = document.createElement("tr");
+            if (index === 0) {
+                tr.className = "winner";
+            }
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${team.name}</td>
+                <td>${team.rawBudget} ${team.rawBudget > 10 ? '(Capped at 10)' : ''}</td>
+                <td>${team.satellite}</td>
+                <td>${team.fuel}</td>
+                <td><strong>${team.score}</strong></td>
+                <td>${index === 0 ? '<span class="badge">Winner</span>' : '-'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Scroll down to results automatically
+        resultCard.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
